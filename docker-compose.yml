@@ -13,14 +13,16 @@ services:
       - ./data:/data
       - /tmp/.X11-unix:/tmp/.X11-unix
 
-  # fast-lio:
-  #   build: ./fast-lio-ros2
-  #   container_name: fast_lio_container
-  #   runtime: nvidia
-  #   network_mode: host
-  #   environment:
-  #     - DISPLAY=${DISPLAY}
-  #   volumes:
-  #     - ./fast-lio-ros2:/workspace
-  #     - ./data:/data
-  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  fast-lio:
+    build: ./fast-lio-ros2
+    container_name: fast_lio_service
+    runtime: nvidia
+    environment:
+      - DISPLAY=${DISPLAY}
+      - NVIDIA_VISIBLE_DEVICES=all
+    volumes:
+      - ./fast-lio-ros2/src:/workspace/fast_lio_ws/src
+      - ./data:/data
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    stdin_open: true
+    tty: true
