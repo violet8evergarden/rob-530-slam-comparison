@@ -15,7 +15,18 @@ This repository evaluates the performance and accuracy trade-offs between a Tran
 ## Setup Instructions
 
 ### 1. Prerequisites
-1. Install Docker (https://docs.docker.com/engine/install/ubuntu/):
+1. Install `git-lfs`:
+```bash
+sudo apt update && sudo apt install git-lfs
+git lfs install
+```
+
+2. Clone this repository:
+```
+git clone https://github.com/tannermi/rob-530-slam-comparison.git
+```
+
+3. Install Docker (https://docs.docker.com/engine/install/ubuntu/):
 ```bash
 # Add Docker's official GPG key:
 sudo apt update
@@ -44,7 +55,7 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-2. Install the NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installing-the-nvidia-container-toolkit):
+4. Install the NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installing-the-nvidia-container-toolkit):
 ```bash
 # Install the prerequisites:
 sudo apt-get update && sudo apt-get install -y --no-install-recommends \
@@ -70,7 +81,7 @@ export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.19.0-1
       libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
 ```
 
-3. Configure Docker (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#configuration):
+5. Configure Docker (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#configuration):
 ```bash
 # Configure the container runtime by using the nvidia-ctk command:
 sudo nvidia-ctk runtime configure --runtime=docker
