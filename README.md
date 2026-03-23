@@ -33,7 +33,7 @@ sudo apt install -y python3-pip python3-venv python3-tk
 pip install evo --upgrade --no-binary evo
 ```
 
-3. Install Docker (https://docs.docker.com/engine/install/ubuntu/):
+3. Install [Docker](https://docs.docker.com/engine/install/ubuntu/):
 ```bash
 # Add Docker's official GPG key:
 sudo apt update
@@ -62,7 +62,7 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-4. Install the NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installing-the-nvidia-container-toolkit):
+4. Install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installing-the-nvidia-container-toolkit):
 ```bash
 # Install the prerequisites:
 sudo apt-get update && sudo apt-get install -y --no-install-recommends \
@@ -88,7 +88,7 @@ export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.19.0-1
       libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
 ```
 
-5. Configure Docker (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#configuration):
+5. Configure [Docker](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#configuration):
 ```bash
 # Configure the container runtime by using the nvidia-ctk command:
 sudo nvidia-ctk runtime configure --runtime=docker
@@ -119,12 +119,12 @@ docker compose run dropd-slam
 ```bash
 ./Examples/RGB-D/rgbd_tum <vocabulary> <config> <sequence_path> <associations> <depth_model_type> <depth_model_path>
 ```
-* <vocabulary>: Path to ORB vocabulary file
-* <config>: Path to YAML configuration file
-* <sequence_path>: Path to TUM RGB-D dataset sequence
-* <associations>: Path to associations file
-* <depth_model_type>: Type of depth model (unidepth or depthanything)
-* <depth_model_path>: Path to ONNX depth model
+* `vocabulary`: Path to ORB vocabulary file
+* `config`: Path to YAML configuration file
+* `sequence_path`: Path to TUM RGB-D dataset sequence
+* `associations`: Path to associations file
+* `depth_model_type`: Type of depth model (unidepth or depthanything)
+* `depth_model_path`: Path to ONNX depth model
 
 For example:
 ```bash
@@ -192,5 +192,5 @@ evo_ape tum results/fast_lio_traj.txt results/dropd_traj.txt -va --plot
 ```
 
 ## Datasets
-1. TUM RGBD: https://cvg.cit.tum.de/data/datasets/rgbd-dataset/download (fr1/desk2)
-2. AVIA: https://drive.google.com/drive/folders/1CGYEJ9-wWjr8INyan6q1BZz_5VtGB-fP (outdoor_Mainbuilding_100Hz_2020-12-24-16-46-29.bag)
+1. [TUM RGBD](https://cvg.cit.tum.de/data/datasets/rgbd-dataset/download): fr1/desk2
+2. [AVIA](https://drive.google.com/drive/folders/1CGYEJ9-wWjr8INyan6q1BZz_5VtGB-fP): outdoor_Mainbuilding_100Hz_2020-12-24-16-46-29.bag
