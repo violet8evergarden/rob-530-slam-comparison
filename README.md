@@ -88,7 +88,7 @@ export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.19.0-1
       libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
 ```
 
-5. Configure [Docker](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#configuration):
+5. [Configure Docker](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#configuration):
 ```bash
 # Configure the container runtime by using the nvidia-ctk command:
 sudo nvidia-ctk runtime configure --runtime=docker
