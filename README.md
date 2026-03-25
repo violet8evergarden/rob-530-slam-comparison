@@ -213,3 +213,6 @@ evo_ape tum results/fast_lio_traj.txt results/dropd_traj.txt -va --plot
 ## Datasets
 1. [TUM RGBD](https://cvg.cit.tum.de/data/datasets/rgbd-dataset/download): fr1/desk2
 2. [AVIA](https://drive.google.com/drive/folders/1CGYEJ9-wWjr8INyan6q1BZz_5VtGB-fP): outdoor_Mainbuilding_100Hz_2020-12-24-16-46-29.bag
+3. [KITTI Odometry](https://www.cvlibs.net/datasets/kitti/eval_odometry.php): 00, 01, 05, and 07
+4. [KITTI Raw](https://www.cvlibs.net/datasets/kitti/raw_data.php): 2011_09_30_drive_0018, 2011_09_30_drive_0027, 2011_10_03_drive_0027, and 2011_10_03_drive_0042
+5. [DIDLM](https://gongweisheng.github.io/DIDLM.github.io/overview.html): H-B-R-D, H-B-R-N, H-B-SN-N, H-B-SU-D, and L-NB-SU-N
