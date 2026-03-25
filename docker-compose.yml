@@ -12,14 +12,25 @@ services:
       - ./dropd-slam:/workspace
       - ./data:/data
       - /tmp/.X11-unix:/tmp/.X11-unix
+  
+  orb-slam:
+    build: ./ORB_SLAM3
+    container_name: orb_slam_container
+    environment:
+      - DISPLAY=${DISPLAY}
+      - GALLIUM_DRIVER=llvmpipe
+    volumes:
+      - ./ORB_SLAM3:/workspace
+      - ./data:/data
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    stdin_open: true
+    tty: true
 
   fast-lio:
     build: ./fast-lio-ros2
     container_name: fast_lio_service
-    runtime: nvidia
     environment:
       - DISPLAY=${DISPLAY}
-      - NVIDIA_VISIBLE_DEVICES=all
     volumes:
       - ./fast-lio-ros2/src:/workspace/fast_lio_ws/src
       - ./data:/data

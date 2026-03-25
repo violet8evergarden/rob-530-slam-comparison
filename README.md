@@ -1,15 +1,17 @@
-# To D or Not to D. That is the SLAM Question: A Comparative Analysis of Monocular SLAM
+# To D or Not to D. That is the SLAM Question: A Comparative Analysis of Visual and LiDAR SLAM
 
-This repository evaluates the performance and accuracy trade-offs between a Transformer-based Monocular SLAM system (**DropD-SLAM**) and a high-performance LiDAR-based LIO system (**FAST-LIO**).
+This repository evaluates the performance and accuracy trade-offs between a Transformer-based Monocular SLAM system (**[DropD-SLAM](https://github.com/tum-pf/dropd-slam)**), a robust Visual-Inertial SLAM system (**[ORB-SLAM3](https://github.com/UZ-SLAMLab/ORB_SLAM3)**), and a high-performance LiDAR-based LIO system (**[FAST-LIO2](https://github.com/Ericsii/FAST_LIO_ROS2)**).
 
 ## Repository Structure
-- `/dropd-slam`: Source code and Dockerfile for Vision-based SLAM.
-- `/fast-lio-ros2`: ROS 2 workspace for LiDAR-based SLAM.
 - `/data`: External dataset mount (KITTI + WeatherKITTI).
+- `/dropd-slam`: Source code and Dockerfile for Transformer-based Monocular SLAM.
+- `/fast-lio-ros2`: ROS 2 workspace for LiDAR-based SLAM.
+- `/ORB_SLAM3` Source code and Dockerfile for Vision-based SLAM.
 - `/results`: Trajectory files (.txt) and `evo` comparison plots.
+- `/scripts`: Scripts to compare results.
 
 ## Hardware Requirements
-- **GPU:** NVIDIA RTX GPU.
+- **GPU:** NVIDIA RTX GPU (for DropD SLAM).
 - **Host OS:** Ubuntu 22.04 or WSL2.
 
 ## Setup Instructions
@@ -132,6 +134,23 @@ For example:
 ./Examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt Examples/RGB-D/TUM1.yaml /data/rgbd_dataset_freiburg1_desk2 /data/rgbd_dataset_freiburg1_desk2/associations.txt unidepth /workspace/models/unidepthv2_with_cam.onnx
 ```
 
+## ORB-SLAM3 Instructions
+1. Start the Docker container:
+```bash
+docker compose run orb-slam
+```
+
+2. Once inside the `orb-slam` container, compile the project:
+```bash
+./build.sh
+```
+
+3. Run the code on your desired sequence:
+```bash
+# Run ORB-SLAM3 with stereo cameras on sequence 0
+./Examples/Stereo/stereo_kitti Vocabulary/ORBvoc.txt Examples/Stereo/KITTI00-02.yaml /data/KITTI/odometry/00
+```
+
 ## FAST-LIO2 Instructions
 1. Start the Docker container:
 ```bash
@@ -181,12 +200,12 @@ ros2 bag play /data/outdoor_Mainbuilding_ros2
 We use the `evo` package to analyze the Absolute Pose Error (APE) and Relative Pose Error (RPE).
 
 ### Comparison Commands
-To evaluate the Vision SLAM against Ground Truth:
+To evaluate DropD SLAM against Ground Truth:
 ```bash
 evo_ape tum data/ground_truth.txt results/dropd_traj.txt -va --plot
 ```
 
-To compare Vision SLAM directly against LiDAR SLAM:
+To compare DropD SLAM directly against FAST-LIO2:
 ```bash
 evo_ape tum results/fast_lio_traj.txt results/dropd_traj.txt -va --plot
 ```
