@@ -1213,7 +1213,18 @@ void System::SaveTrajectoryKITTI(const string &filename)
     }
 
     vector<KeyFrame*> vpKFs = mpAtlas->GetAllKeyFrames();
+
+    if(vpKFs.empty()){
+        cerr << "ERROR: Atlas has no KeyFrames. Nothing to save." << endl;
+        return;
+    }
+
     sort(vpKFs.begin(),vpKFs.end(),KeyFrame::lId);
+
+    if(!vpKFs[0]){
+        cerr << "ERROR: First KeyFrame is null." << endl;
+        return;
+    }
 
     // Transform all keyframes so that the first keyframe is at the origin.
     // After a loop closure the first keyframe might not be at the origin.
@@ -1221,6 +1232,12 @@ void System::SaveTrajectoryKITTI(const string &filename)
 
     ofstream f;
     f.open(filename.c_str());
+
+    if(!f.is_open()){
+        cerr << "ERROR: Could not open " << filename << " for writing." << endl;
+        return;
+    }
+
     f << fixed;
 
     // Frame pose is stored relative to its reference keyframe (which is optimized by BA and pose graph).
@@ -1246,6 +1263,7 @@ void System::SaveTrajectoryKITTI(const string &filename)
             Trw = Trw * pKF->mTcp;
             pKF = pKF->GetParent();
         }
+        if(!pKF) continue;
 
         Trw = Trw * pKF->GetPose() * Tow;
 
@@ -1259,6 +1277,7 @@ void System::SaveTrajectoryKITTI(const string &filename)
              Rwc(2,0) << " " << Rwc(2,1)  << " " << Rwc(2,2) << " "  << twc(2) << endl;
     }
     f.close();
+    cout << "Trajectory saved successfully to " << filename << endl;
 }
 
 
