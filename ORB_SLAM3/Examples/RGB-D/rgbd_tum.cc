@@ -43,6 +43,8 @@ int main(int argc, char **argv)
     vector<string> vstrImageFilenamesD;
     vector<double> vTimestamps;
     string strAssociationFilename = string(argv[4]);
+
+    cout << endl << "Loading images from association file: " << strAssociationFilename << endl;
     LoadImages(strAssociationFilename, vstrImageFilenamesRGB, vstrImageFilenamesD, vTimestamps);
 
     // Check consistency in the number of images and depthmaps
@@ -59,6 +61,7 @@ int main(int argc, char **argv)
     }
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
+    cout << "Initializing SLAM system..." << endl;
     ORB_SLAM3::System SLAM(argv[1],argv[2],ORB_SLAM3::System::RGBD,true);
     float imageScale = SLAM.GetImageScale();
 
@@ -112,6 +115,9 @@ int main(int argc, char **argv)
         double ttrack= std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count();
 
         vTimesTrack[ni]=ttrack;
+        
+        double track_ms = ttrack * 1000.0; 
+        SLAM.InsertTrackTime(track_ms);
 
         // Wait to load the next frame
         double T=0;
@@ -150,24 +156,44 @@ void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageF
 {
     ifstream fAssociation;
     fAssociation.open(strAssociationFilename.c_str());
-    while(!fAssociation.eof())
+
+    if(!fAssociation.is_open()) {
+        cerr << endl << "CRITICAL ERROR: Could not open association file at: " << strAssociationFilename << endl;
+        return; 
+    }
+
+    cout << "File opened successfully. Parsing lines..." << endl;
+    int lineCount = 0;
+
+    string s;
+
+    while(getline(fAssociation, s))
     {
-        string s;
-        getline(fAssociation,s);
-        if(!s.empty())
+        if(!s.empty() && s[0] != '#') // Skip empty lines and comments
         {
             stringstream ss;
             ss << s;
             double t;
             string sRGB, sD;
-            ss >> t;
-            vTimestamps.push_back(t);
-            ss >> sRGB;
-            vstrImageFilenamesRGB.push_back(sRGB);
-            ss >> t;
-            ss >> sD;
-            vstrImageFilenamesD.push_back(sD);
+            
+            // Extract data and check for success
+            if(!(ss >> t >> sRGB >> t >> sD)) {
+                cerr << "Warning: Malformed line at " << lineCount << ": " << s << endl;
+                continue;
+            }
 
+            vTimestamps.push_back(t);
+            vstrImageFilenamesRGB.push_back(sRGB);
+            vstrImageFilenamesD.push_back(sD);
+            
+            lineCount++;
+
+            if(lineCount % 100 == 0) {
+                cout << "   ... loaded " << lineCount << " image pairs" << endl;
+            }
         }
     }
+    
+    fAssociation.close();
+    cout << "Finished! Total images loaded: " << vstrImageFilenamesRGB.size() << endl;
 }
