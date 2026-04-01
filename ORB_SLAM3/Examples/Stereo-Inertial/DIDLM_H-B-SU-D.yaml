@@ -1,0 +1,114 @@
+%YAML:1.0
+
+#--------------------------------------------------------------------------------------------
+# System config
+#--------------------------------------------------------------------------------------------
+File.version: "1.0"
+Camera.type: "PinHole"
+
+#--------------------------------------------------------------------------------------------
+# LEFT Camera parameters (Camera 1) - SCALED FOR 640x400
+#--------------------------------------------------------------------------------------------
+Camera1.fx: 402.57913
+Camera1.fy: 402.08123
+Camera1.cx: 336.18103
+Camera1.cy: 205.80262
+
+Camera1.k1: 0.0
+Camera1.k2: 0.0
+Camera1.p1: 0.0
+Camera1.p2: 0.0
+
+#--------------------------------------------------------------------------------------------
+# RIGHT Camera parameters (Camera 2) - SCALED FOR 640x400
+#--------------------------------------------------------------------------------------------
+Camera2.fx: 401.46755
+Camera2.fy: 400.91775
+Camera2.cx: 327.89443
+Camera2.cy: 216.67564
+
+Camera2.k1: 0.0
+Camera2.k2: 0.0
+Camera2.p1: 0.0
+Camera2.p2: 0.0
+
+#--------------------------------------------------------------------------------------------
+# Camera & Stereo Matrix Settings
+#--------------------------------------------------------------------------------------------
+Camera.width: 640
+Camera.height: 400
+
+Camera.fps: 30
+Camera.RGB: 0 
+
+Stereo.ThDepth: 50.0
+
+# Transformation from Right Camera (2) to Left Camera (1).
+Camera1.RectificationMatrix: !!opencv-matrix
+  rows: 3
+  cols: 3
+  dt: f
+  data: [1,0,0, 0,1,0, 0,0,1]
+
+Camera2.RectificationMatrix: !!opencv-matrix
+  rows: 3
+  cols: 3
+  dt: f
+  data: [1,0,0, 0,1,0, 0,0,1]
+
+Stereo.T_c1_c2: !!opencv-matrix
+  rows: 4
+  cols: 4
+  dt: f
+  data: [1.0, 0.0, 0.0, 0.11346,
+         0.0, 1.0, 0.0, 0.0,
+         0.0, 0.0, 1.0, 0.0,
+         0.0, 0.0, 0.0, 1.0]
+
+#--------------------------------------------------------------------------------------------
+# IMU Parameters
+#--------------------------------------------------------------------------------------------
+# Transformation from Livox IMU to Left Camera
+IMU.T_b_c1: !!opencv-matrix
+   rows: 4
+   cols: 4
+   dt: f
+   data: [-0.13675300,  0.04059918,  0.98977287,  0.03090498,
+          -0.99055061,  0.00488253, -0.13706073, -0.32396786,
+          -0.01039715, -0.99916358,  0.03954784,  0.14602932,
+           0.0,         0.0,         0.0,         1.0]
+
+# Hardware Time Offset
+IMU.TimeOffset: -0.025002
+
+# IMU Noise (from imu.yaml)
+IMU.NoiseGyro: 0.00256
+IMU.NoiseAcc: 0.01989
+IMU.GyroWalk: 0.0000307
+IMU.AccWalk: 0.000538
+IMU.Frequency: 200.0
+
+IMU.InsertKFsWhenLost: 0
+
+#--------------------------------------------------------------------------------------------
+# ORB Parameters
+#--------------------------------------------------------------------------------------------
+ORBextractor.nFeatures: 1200
+ORBextractor.scaleFactor: 1.2
+ORBextractor.nLevels: 8
+ORBextractor.iniThFAST: 20
+ORBextractor.minThFAST: 7
+
+#--------------------------------------------------------------------------------------------
+# Viewer Parameters
+#--------------------------------------------------------------------------------------------
+Viewer.KeyFrameSize: 0.05
+Viewer.KeyFrameLineWidth: 1.0
+Viewer.GraphLineWidth: 0.9
+Viewer.PointSize: 2.0
+Viewer.CameraSize: 0.08
+Viewer.CameraLineWidth: 3.0
+Viewer.ViewpointX: 0.0
+Viewer.ViewpointY: -0.7
+Viewer.ViewpointZ: -3.5
+Viewer.ViewpointF: 500.0
