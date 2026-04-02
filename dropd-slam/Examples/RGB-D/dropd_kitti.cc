@@ -1,25 +1,12 @@
 /**
-* This file is part of ORB-SLAM3
-*
-* Copyright (C) 2017-2021 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
-* Copyright (C) 2014-2016 Raúl Mur-Artal, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
-*
-* ORB-SLAM3 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
-* License as published by the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-* the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with ORB-SLAM3.
-* If not, see <http://www.gnu.org/licenses/>.
+* Based on ORB-SLAM3 examples, modified for DropD-SLAM on KITTI.
 */
 
 #include<iostream>
 #include<algorithm>
 #include<fstream>
 #include<chrono>
+#include<iomanip>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -28,15 +15,14 @@
 #include<opencv2/core/core.hpp>
 #include <opencv2/opencv.hpp>
 #include <onnxruntime_cxx_api.h>
-#include "DepthInference.h" // <-- Add your unified inference header
+#include "DepthInference.h"
 
 #include<System.h>
 
 using namespace std;
 using namespace DropD;
 
-void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageFilenamesRGB,
-                vector<string> &vstrImageFilenamesD, vector<double> &vTimestamps);
+void LoadImages(const string &strPathToSequence, vector<string> &vstrImageFilenames, vector<double> &vTimestamps);
 
 struct DepthJob {
     int frame_idx;
@@ -77,34 +63,28 @@ void DepthWorker(std::unique_ptr<DepthEstimationInference>& depth_infer) {
 
 int main(int argc, char **argv)
 {
-    if(argc < 5 || argc > 7)
+    if(argc < 4 || argc > 6)
     {
-        cerr << endl << "Usage: ./rgbd_tum path_to_vocabulary path_to_settings path_to_sequence path_to_association [model_type model_path]" << endl;
+        cerr << endl << "Usage: ./dropd_kitti path_to_vocabulary path_to_settings path_to_sequence [model_type model_path]" << endl;
         cerr << "Optional: model_type ('depthanything', 'unidepth') and model_path for monocular depth inference." << endl;
         return 1;
     }
 
-    // Retrieve paths to images
-    vector<string> vstrImageFilenamesRGB;
-    vector<string> vstrImageFilenamesD;
+    // Retrieve paths to images using the KITTI loader
+    cout << "Loading KITTI sequence from: " << argv[3] << endl;
+    vector<string> vstrImageFilenames;
     vector<double> vTimestamps;
-    string strAssociationFilename = string(argv[4]);
-    LoadImages(strAssociationFilename, vstrImageFilenamesRGB, vstrImageFilenamesD, vTimestamps);
+    LoadImages(string(argv[3]), vstrImageFilenames, vTimestamps);
 
-    // Check consistency in the number of images and depthmaps
-    int nImages = vstrImageFilenamesRGB.size();
-    if(vstrImageFilenamesRGB.empty())
+    int nImages = vstrImageFilenames.size();
+    if(vstrImageFilenames.empty())
     {
         cerr << endl << "No images found in provided path." << endl;
         return 1;
     }
-    else if(vstrImageFilenamesD.size()!=vstrImageFilenamesRGB.size())
-    {
-        cerr << endl << "Different number of images for rgb and depth." << endl;
-        return 1;
-    }
 
-    // Optional: Initialize monocular depth inference
+    // Initialize monocular depth inference
+    cout << "Initializing monocular depth inference..." << endl;
     std::unique_ptr<DepthEstimationInference> depth_infer;
     bool use_mono_depth = false;
     string model_type = "";
@@ -115,6 +95,7 @@ int main(int argc, char **argv)
     
     // Read from config file if available
     cv::FileStorage fsSettings(argv[2], cv::FileStorage::READ);
+    cout << "Reading configuration from: " << argv[2] << endl;
     if(fsSettings.isOpened()) {
         cv::FileNode node = fsSettings["System.DepthModelType"];
         if(!node.empty() && node.isString()) {
@@ -159,13 +140,15 @@ int main(int argc, char **argv)
         
         use_mono_depth = true;
         
-        // Additional warmup
-        cv::Mat warmup_img = cv::imread(string(argv[3]) + "/" + vstrImageFilenamesRGB[0], cv::IMREAD_UNCHANGED);
+        // Additional warmup using the first KITTI image
+        cv::Mat warmup_img = cv::imread(vstrImageFilenames[0], cv::IMREAD_UNCHANGED);
         if(!warmup_img.empty()) {
             for (int i = 0; i < 3; ++i) {
                 depth_infer->runInference(warmup_img);
             }
         }
+    } else {
+        cerr << endl << "WARNING: No depth model parameters provided. DropD-SLAM requires a depth model to function correctly!" << endl;
     }
 
     std::thread depth_thread;
@@ -174,7 +157,7 @@ int main(int argc, char **argv)
         depth_thread = std::thread(DepthWorker, std::ref(depth_infer));
     }
 
-    // Create SLAM system. It initializes all system threads and gets ready to process frames.
+    // Create SLAM system initialized as RGBD
     ORB_SLAM3::System SLAM(argv[1],argv[2],ORB_SLAM3::System::RGBD,true);
     float imageScale = SLAM.GetImageScale();
 
@@ -193,19 +176,17 @@ int main(int argc, char **argv)
     cv::Mat imRGB, imD;
     for(int ni=0; ni<nImages; ni++)
     {
-        // Read image and depthmap from file
-        imRGB = cv::imread(string(argv[3])+"/"+vstrImageFilenamesRGB[ni],cv::IMREAD_UNCHANGED); //,cv::IMREAD_UNCHANGED);
-        imD = cv::imread(string(argv[3])+"/"+vstrImageFilenamesD[ni],cv::IMREAD_UNCHANGED); //,cv::IMREAD_UNCHANGED);
+        // Read left image from file
+        imRGB = cv::imread(vstrImageFilenames[ni],cv::IMREAD_UNCHANGED); 
         double tframe = vTimestamps[ni];
 
         if(imRGB.empty())
         {
-            cerr << endl << "Failed to load image at: "
-                 << string(argv[3]) << "/" << vstrImageFilenamesRGB[ni] << endl;
+            cerr << endl << "Failed to load image at: " << vstrImageFilenames[ni] << endl;
             return 1;
         }
 
-        // If depth is missing and monocular inference is enabled, generate depth
+        // Generate depth using AI
         if(use_mono_depth) {
             auto depth_start = std::chrono::high_resolution_clock::now();
             
@@ -216,8 +197,7 @@ int main(int argc, char **argv)
             }
             depth_cv.notify_one();
 
-            // Wait for result for this frame
-            cv::Mat depth;
+            // Wait for AI result for this frame
             while (true) {
                 std::unique_lock<std::mutex> lock(depth_mutex);
                 if (!depth_results.empty() && depth_results.front().frame_idx == ni) {
@@ -232,6 +212,9 @@ int main(int argc, char **argv)
             auto depth_end = std::chrono::high_resolution_clock::now();
             double depth_time = std::chrono::duration_cast<std::chrono::duration<double>>(depth_end - depth_start).count();
             vTimesDepth[ni] = depth_time;
+        } else {
+            // Failsafe blank image if running without AI
+            imD = cv::Mat::zeros(imRGB.size(), CV_16UC1); 
         }
 
         if(imageScale != 1.f)
@@ -248,7 +231,7 @@ int main(int argc, char **argv)
         std::chrono::monotonic_clock::time_point t1 = std::chrono::monotonic_clock::now();
 #endif
 
-        // Pass the image to the SLAM system
+        // Pass the image and the AI depth map to the SLAM system
         SLAM.TrackRGBD(imRGB,imD,tframe);
 
 #ifdef COMPILEDWITHC14
@@ -258,7 +241,6 @@ int main(int argc, char **argv)
 #endif
 
         double ttrack= std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count();
-
         vTimesTrack[ni]=ttrack;
         double track_ms = ttrack * 1000.0; 
         SLAM.InsertTrackTime(track_ms);
@@ -269,9 +251,6 @@ int main(int argc, char **argv)
             T = vTimestamps[ni+1]-tframe;
         else if(ni>0)
             T = tframe-vTimestamps[ni-1];
-
-        // if(ttrack<T)
-        //     usleep((T-ttrack)*1e6);
     }
     std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now();
 
@@ -316,6 +295,7 @@ int main(int argc, char **argv)
     cout << "Total time: " << total_time << endl;
     cout << "FPS: " << nImages/total_time << endl;
     cout << "-------" << endl << endl;
+    
     // Save camera trajectory
     SLAM.SaveTrajectoryTUM("CameraTrajectory.txt");
     SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
@@ -331,7 +311,6 @@ int main(int argc, char **argv)
         depth_thread.join();
         
         // Explicitly destroy depth inference object before exiting
-        // to ensure proper cleanup order and avoid double-free
         depth_infer.reset();
     }
     cout << "Done." << endl;
@@ -339,29 +318,35 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageFilenamesRGB,
-                vector<string> &vstrImageFilenamesD, vector<double> &vTimestamps)
+void LoadImages(const string &strPathToSequence, vector<string> &vstrImageFilenames, vector<double> &vTimestamps)
 {
-    ifstream fAssociation;
-    fAssociation.open(strAssociationFilename.c_str());
-    while(!fAssociation.eof())
+    ifstream fTimes;
+    string strPathTimeFile = strPathToSequence + "/times.txt";
+    fTimes.open(strPathTimeFile.c_str());
+    cout << "Loading timestamps from: " << strPathTimeFile << endl;
+    while(!fTimes.eof())
     {
         string s;
-        getline(fAssociation,s);
+        getline(fTimes,s);
         if(!s.empty())
         {
             stringstream ss;
             ss << s;
             double t;
-            string sRGB, sD;
             ss >> t;
             vTimestamps.push_back(t);
-            ss >> sRGB;
-            vstrImageFilenamesRGB.push_back(sRGB);
-            ss >> t;
-            ss >> sD;
-            vstrImageFilenamesD.push_back(sD);
-
         }
+    }
+
+    string strPrefixLeft = strPathToSequence + "/image_0/";
+
+    const int nTimes = vTimestamps.size();
+    vstrImageFilenames.resize(nTimes);
+
+    for(int i=0; i<nTimes; i++)
+    {
+        stringstream ss;
+        ss << setfill('0') << setw(6) << i;
+        vstrImageFilenames[i] = strPrefixLeft + ss.str() + ".png";
     }
 }

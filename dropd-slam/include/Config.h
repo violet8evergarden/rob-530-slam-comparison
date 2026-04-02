@@ -24,6 +24,9 @@
 #include <stdlib.h>
 #include <string>
 
+// Flag to activate the measurement of time in each process (track,localmap, place recognition).
+#define REGISTER_TIMES
+
 
 namespace ORB_SLAM3
 {

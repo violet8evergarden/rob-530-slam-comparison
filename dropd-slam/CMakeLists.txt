@@ -183,6 +183,11 @@ add_executable(rgbd_tum
 target_link_libraries(rgbd_tum ${PROJECT_NAME})
 target_include_directories(rgbd_tum PRIVATE ${OpenCV_INCLUDE_DIRS})
 
+add_executable(dropd_kitti
+        Examples/RGB-D/dropd_kitti.cc)
+target_link_libraries(dropd_kitti ${PROJECT_NAME})
+target_include_directories(dropd_kitti PRIVATE ${OpenCV_INCLUDE_DIRS})
+
 #Monocular examples
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/Monocular)
 

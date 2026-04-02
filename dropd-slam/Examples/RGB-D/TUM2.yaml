@@ -45,14 +45,14 @@ System.DynamicScene: 0
 # Model Paths Configuration
 #--------------------------------------------------------------------------------------------
 # Path to KeyNet detector model (for learned keypoint detection)
-System.KeyNetModelPath: "/models/keynet.onnx"
+System.KeyNetModelPath: "/workspace/models/keynet.onnx"
 
 # Path to YOLO segmentation model (for dynamic object detection)
-System.YoloModelPath: "/models/yolo11s-seg.onnx"
+System.YoloModelPath: "/workspace/models/yolo11s-seg.onnx"
 
 # Depth estimation model configuration (optional - can override via command line)
 System.DepthModelType: "unidepth"  # "unidepth" or "depthanything(NOT SUPPORTED FOR NOW)" - leave empty to disable
-System.DepthModelPath: "/models/unidepthv2_with_cam.onnx"  # Path to depth model ONNX file - leave empty to disable
+System.DepthModelPath: "/workspace/models/unidepthv2_with_cam.onnx"  # Path to depth model ONNX file - leave empty to disable
 System.MaxDepthDistance: 0.0  # Maximum depth distance in meters (0 = no filtering)
 #--------------------------------------------------------------------------------------------
 # ORB Parameters

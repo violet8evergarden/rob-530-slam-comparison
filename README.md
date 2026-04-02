@@ -131,7 +131,7 @@ docker compose run dropd-slam
 For example:
 ```bash
 # Run DropD-SLAM with monocular depth estimation
-./Examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt Examples/RGB-D/TUM1.yaml /data/rgbd_dataset_freiburg1_desk2 /data/rgbd_dataset_freiburg1_desk2/associations.txt unidepth /workspace/models/unidepthv2_with_cam.onnx
+./Examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt Examples/RGB-D/TUM1.yaml /data/TUM/rgbd_dataset_freiburg1_desk2 /data/TUM/rgbd_dataset_freiburg1_desk2/associations.txt unidepth /workspace/models/unidepthv2_with_cam.onnx
 ```
 
 ## ORB-SLAM3 Instructions
@@ -165,35 +165,15 @@ cd /workspace/fast_lio_ws
 source install/setup.bash
 ```
 
-3. (For DIDLM ROSbags) Convert ROS1 bag to ROS2 bag
-```bash
-# Convert bag
-rosbags-convert --src /data/DIDLM/H-B-R-D.bag --dst /data/DIDLM/H-B-R-D_ros2 --dst-storage mcap --dst-version 8 --dst-typestore ros2_humble
-
-# Ensure message types are updated
-sed -i 's/livox_ros_driver/livox_ros_driver2/g' /data/DIDLM/H-B-R-D_ros2/metadata.yaml
-```
-
-4. Run the code
+3. Run the code
 ```bash
 # In the first terminal (make sure config_path and config_file are correct)
-ros2 launch fast_lio mapping.launch.py config_path:=/workspace/fast_lio_ws/src/FAST_LIO_ROS2/config config_file:=didlm.yaml
+ros2 launch fast_lio mapping.launch.py config_path:=/workspace/fast_lio_ws/src/FAST_LIO_ROS2/config config_file:=kitti.yaml
 
 # Open a second terminal (make sure the ROSbag path is correct)
 docker exec -it fast_lio_active bash
 source install/setup.bash
-ros2 bag play /data/DIDLM/H-B-R-D_ros2
-```
-
-For example:
-```bash
-# In the first terminal
-ros2 launch fast_lio mapping.launch.py config_file:=/workspace/fast_lio_ws/src/FAST_LIO_ROS2/config/avia.yaml
-
-# Open a second terminal
-docker exec -it fast_lio_active bash
-source install/setup.bash
-ros2 bag play /data/outdoor_Mainbuilding_ros2
+ros2 bag play /data/KITTI/rosbags/2011_09_30/2011_09_30_drive_0018_extract_ros2
 ```
 
 ## Evaluation
@@ -211,7 +191,6 @@ evo_ape tum results/fast_lio_traj.txt results/dropd_traj.txt -va --plot
 ```
 
 ## Datasets
-1. [TUM RGBD](https://cvg.cit.tum.de/data/datasets/rgbd-dataset/download): fr1/desk2
-2. [KITTI Odometry](https://www.cvlibs.net/datasets/kitti/eval_odometry.php): 00, 01, 05, and 07
-3. [KITTI ROS2 bags](https://github.com/Jakubach/kitti_to_ros): kitti_seq00_ros2.zip, kitti_seq01_ros2.zip, kitti_seq05_ros2.zip, and kitti_seq07_ros2.zip
-4. [DIDLM](https://gongweisheng.github.io/DIDLM.github.io/overview.html): H-B-R-D, H-B-R-N, H-B-SN-N, H-B-SU-D, and L-NB-SU-N
+1. [TUM RGBD](https://cvg.cit.tum.de/data/datasets/rgbd-dataset/download): fr1/desk2, fr2/desk, and fr3/structure_texture_near
+2. [KITTI Odometry](https://www.cvlibs.net/datasets/kitti/eval_odometry.php): Scenes 00-10
+3. [KITTI ROS2 bags](https://github.com/Jakubach/kitti_to_ros): Scenes 00-10
