@@ -7,7 +7,7 @@ This repository evaluates the performance and accuracy trade-offs between a Tran
 - `/dropd-slam`: Source code and Dockerfile for Transformer-based Monocular SLAM.
 - `/fast-lio-ros2`: ROS 2 workspace for LiDAR-based SLAM.
 - `/ORB_SLAM3` Source code and Dockerfile for Vision-based SLAM.
-- `/results`: Trajectory files (.txt) and `evo` comparison plots.
+- `/results`: Trajectory files (.txt) and `evo` comparison results.
 - `/scripts`: Scripts to compare results.
 
 ## Hardware Requirements
@@ -119,13 +119,16 @@ docker compose run dropd-slam
 
 3. Run the code using the desired arguments:
 ```bash
-./Examples/RGB-D/rgbd_tum <vocabulary> <config> <sequence_path> <associations> <depth_model_type> <depth_model_path>
+# For RGB-D TUM sequences. Make sure the config in ./Exampled/RGB-D/ is updated.
+./Examples/RGB-D/rgbd_tum <vocabulary> <config> <sequence_path> <associations> unidepth <depth_model_path>
+
+# For KITTI sequences. Make sure the config in ./Examples/RGB-D/ is updated.
+./Exampled/RGB-D/dropd_kitti <vocabulary> <config> <sequence path> unidepth <depth_model_path>
 ```
 * `vocabulary`: Path to ORB vocabulary file
 * `config`: Path to YAML configuration file
-* `sequence_path`: Path to TUM RGB-D dataset sequence
+* `sequence_path`: Path to TUM or KITTI RGB-D dataset sequence
 * `associations`: Path to associations file
-* `depth_model_type`: Type of depth model (unidepth or depthanything)
 * `depth_model_path`: Path to ONNX depth model
 
 For example:
@@ -147,8 +150,11 @@ docker compose run orb-slam
 
 3. Run the code on your desired sequence:
 ```bash
-# Run ORB-SLAM3 with stereo cameras on sequence 0
-./Examples/Stereo/stereo_kitti Vocabulary/ORBvoc.txt Examples/Stereo/KITTI00-02.yaml /data/KITTI/odometry/00
+# Run ORGB-SLAM3 with RGB-D camera on TUM sequence (make sure paths are correct)
+./Examples/RGB-D/rgb_tum ./Vocabulary/ORBvoc.txt ./Examples/RGB-D/TUM1.yaml /data/TUM/rgbd_dataset_freiburg1_desk2 ./Examples/RGB-D/assocations/fr1_desk2.txt
+
+# Run ORB-SLAM3 with stereo cameras on KITTI sequence 0 (make sure paths are correct)
+./Examples/Stereo/stereo_kitti ./Vocabulary/ORBvoc.txt ./Examples/Stereo/KITTI00-02.yaml /data/KITTI/odometry/00
 ```
 
 ## FAST-LIO2 Instructions
@@ -180,9 +186,8 @@ ros2 bag play /data/KITTI/rosbags/2011_09_30/2011_09_30_drive_0018_extract_ros2
 We use the `evo` package to analyze the Absolute Pose Error (APE), Relative Pose Error (RPE), and other metrics.
 
 To check your results, make sure they are saved in the respective `results` folder. Then, run `scripts/evaluate.py`. This script will parse all of the data saved in the `results` folder, run evaluation against ground truth, and save a `metrics.json` folder in each subdirectory.
-```
 
 ## Datasets
-1. [TUM RGBD](https://cvg.cit.tum.de/data/datasets/rgbd-dataset/download): fr1/desk2, fr2/desk, and fr3/structure_texture_near
+1. [TUM RGBD](https://cvg.cit.tum.de/data/datasets/rgbd-dataset/download): fr1/desk2, fr2/desk, and fr3/structure_texture_near (for DropD-SLAM and ORB-SLAM3)
 2. [KITTI Odometry](https://www.cvlibs.net/datasets/kitti/eval_odometry.php): Scenes 00-10
 3. [KITTI ROS2 bags](https://github.com/Jakubach/kitti_to_ros): Scenes 00-10
