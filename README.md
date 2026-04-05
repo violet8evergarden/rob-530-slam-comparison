@@ -177,17 +177,9 @@ ros2 bag play /data/KITTI/rosbags/2011_09_30/2011_09_30_drive_0018_extract_ros2
 ```
 
 ## Evaluation
-We use the `evo` package to analyze the Absolute Pose Error (APE) and Relative Pose Error (RPE).
+We use the `evo` package to analyze the Absolute Pose Error (APE), Relative Pose Error (RPE), and other metrics.
 
-### Comparison Commands
-To evaluate DropD SLAM against Ground Truth:
-```bash
-evo_ape tum data/ground_truth.txt results/dropd_traj.txt -va --plot
-```
-
-To compare DropD SLAM directly against FAST-LIO2:
-```bash
-evo_ape tum results/fast_lio_traj.txt results/dropd_traj.txt -va --plot
+To check your results, make sure they are saved in the respective `results` folder. Then, run `scripts/evaluate.py`. This script will parse all of the data saved in the `results` folder, run evaluation against ground truth, and save a `metrics.json` folder in each subdirectory.
 ```
 
 ## Datasets
