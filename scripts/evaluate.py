@@ -139,12 +139,10 @@ class SLAMEvaluator:
         self.results["tracking_success_percent"] = round((num_est / num_possible) * 100, 2) if num_possible > 0 else 0.0
 
 
-    def run_rpe_deltas(self):
+    def compute_rpe_deltas(self):
         '''
         For checking drift
         '''
-        is_lidar = "fast_lio" in self.identifier.lower()
-        
         for delta, unit in [(1, "f"), (10, "f"), (100, "m")]:
             for pose_rel, key in [("trans_part", "trans"), ("angle_deg", "rot")]:
                 cmd = ["evo_rpe", self.format, self.gt, self.est,
@@ -152,8 +150,6 @@ class SLAMEvaluator:
                     "--delta", str(delta),
                     "--delta_unit", unit,
                     "--pose_relation", pose_rel]
-                if not is_lidar:
-                    cmd.append("-s")
                 
                 proc = subprocess.run(cmd, capture_output=True, text=True)
                 rmse = re.search(r"rmse\s+[\W]*\s*([\d.]+)", proc.stdout, re.IGNORECASE)
@@ -161,7 +157,7 @@ class SLAMEvaluator:
                     k = f"rpe_{key}_rmse_delta{delta}{unit}"
                     self.results[k] = float(rmse.group(1))
 
-
+    # TODO Broken -> not aligned correctly?
     def compute_per_axis_rmse(self):
         """Load both trajectories, align, and compute RMSE per axis."""
         try:
@@ -185,6 +181,39 @@ class SLAMEvaluator:
         except Exception as e:
             print(f"compute per axis RMSE failed for some reason: {e}")
     
+
+    def compute_drift_rate(self):
+        """ATE normalized by total path length for a fair comparison"""
+        est_data = np.loadtxt(self.est)
+        positions = est_data[:, 1:4]
+        path_length = np.sum(np.linalg.norm(np.diff(positions, axis=0), axis=1))
+        
+        if "ape_rmse_se3_metric" in self.results and path_length > 0:
+            self.results["drift_rate_m_per_m"] = round(self.results["ape_rmse_se3_metric"] / path_length, 6)
+            self.results["path_length_m"] = round(path_length, 3)
+    
+
+    def compute_tracking_loss(self):
+        """Detects gaps in trajectory that indicate tracking loss"""
+        est_data = np.loadtxt(self.est)
+        timestamps = est_data[:, 0]
+        gaps = np.diff(timestamps)
+        
+        median_dt = np.median(gaps)
+        # A gap > 5x median interval means tracking loss
+        loss_events = gaps[gaps > median_dt * 5]
+        
+        self.results["tracking_loss_events"]   = int(len(loss_events))
+        self.results["total_tracking_loss_s"]  = round(float(np.sum(loss_events)), 3)
+        self.results["longest_loss_event_s"]   = round(float(np.max(loss_events)) if len(loss_events) > 0 else 0, 3)
+        recovered = 0
+        for i, gap in enumerate(gaps):
+            if gap > median_dt * 5:
+                # Check if tracking resumed within 10 frames = recovery
+                if i + 1 < len(timestamps):
+                    recovered += 1
+        self.results["relocalization_success_rate"] = round(recovered / max(len(loss_events), 1), 3)
+
 
     def run_all_metrics(self):
         """APE (Metric & Aligned), RPE, and Success Rate."""
@@ -232,11 +261,17 @@ class SLAMEvaluator:
         if rpe_match: 
             self.results["rpe_rmse_metric"] = float(rpe_match.group(1))
         
-        # RPE with delta windows
-        self.run_rpe_deltas()
+        # 4. RPE with delta windows
+        self.compute_rpe_deltas()
 
-        # RPE by axis
+        # 5. RPE by axis
         self.compute_per_axis_rmse()
+
+        # 6. Drift rate for ATE comparisons
+        self.compute_drift_rate()
+
+        # 7. Check how many times an algorithm lost tracking and for how long
+        self.compute_tracking_loss()
 
 
     def parse_logs_and_complexity(self):
@@ -291,7 +326,6 @@ def run_all_evaluations(base_dir):
             eval_obj.run_all_metrics()
             eval_obj.parse_logs_and_complexity()
             eval_obj.save_results()
-            exit(5)
 
 if __name__ == "__main__":
     # NOTE: This script was for testing purposes and some metrics may be missing/inaccurate (e.g. depth inference time is not considered but should be)
