@@ -113,6 +113,7 @@ class SLAMEvaluator:
         
         return "tum"
 
+
     def calculate_success_rate(self):
         """Calculates success based on total images in sequence vs tracked poses."""
         def count_lines(file_path):
@@ -136,6 +137,54 @@ class SLAMEvaluator:
         self.results["frames_tracked"] = num_est
         self.results["frames_total_possible"] = num_possible
         self.results["tracking_success_percent"] = round((num_est / num_possible) * 100, 2) if num_possible > 0 else 0.0
+
+
+    def run_rpe_deltas(self):
+        '''
+        For checking drift
+        '''
+        is_lidar = "fast_lio" in self.identifier.lower()
+        
+        for delta, unit in [(1, "f"), (10, "f"), (100, "m")]:
+            for pose_rel, key in [("trans_part", "trans"), ("angle_deg", "rot")]:
+                cmd = ["evo_rpe", self.format, self.gt, self.est,
+                    "-va", "--silent",
+                    "--delta", str(delta),
+                    "--delta_unit", unit,
+                    "--pose_relation", pose_rel]
+                if not is_lidar:
+                    cmd.append("-s")
+                
+                proc = subprocess.run(cmd, capture_output=True, text=True)
+                rmse = re.search(r"rmse\s+[\W]*\s*([\d.]+)", proc.stdout, re.IGNORECASE)
+                if rmse:
+                    k = f"rpe_{key}_rmse_delta{delta}{unit}"
+                    self.results[k] = float(rmse.group(1))
+
+
+    def compute_per_axis_rmse(self):
+        """Load both trajectories, align, and compute RMSE per axis."""
+        try:
+            est_data = np.loadtxt(self.est)
+            gt_data  = np.loadtxt(self.gt)
+            
+            # Sync by nearest timestamp
+            from scipy.spatial import KDTree
+            gt_ts = gt_data[:, 0]
+            est_ts = est_data[:, 0]
+            tree = KDTree(gt_ts.reshape(-1, 1))
+            _, idx = tree.query(est_ts.reshape(-1, 1))
+            gt_sync = gt_data[idx]
+
+            # x, y, z columns
+            diff = est_data[:, 1:4] - gt_sync[:, 1:4]
+            for i, axis in enumerate(["x", "y", "z"]):
+                self.results[f"rmse_{axis}"] = float(np.sqrt(np.mean(diff[:, i] ** 2)))
+            self.results["rmse_3d"] = float(np.sqrt(np.mean(np.sum(diff**2, axis=1))))
+            
+        except Exception as e:
+            print(f"compute per axis RMSE failed for some reason: {e}")
+    
 
     def run_all_metrics(self):
         """APE (Metric & Aligned), RPE, and Success Rate."""
@@ -182,6 +231,13 @@ class SLAMEvaluator:
         rpe_match = re.search(r"rmse\s+[\W]*\s*([\d.]+)", proc_rpe.stdout, re.IGNORECASE)
         if rpe_match: 
             self.results["rpe_rmse_metric"] = float(rpe_match.group(1))
+        
+        # RPE with delta windows
+        self.run_rpe_deltas()
+
+        # RPE by axis
+        self.compute_per_axis_rmse()
+
 
     def parse_logs_and_complexity(self):
         # Look for Execution Mean logs (ORB-SLAM3/DropD style)
@@ -208,11 +264,13 @@ class SLAMEvaluator:
                 self.results["mean_fps"] = round(1000.0 / np.mean(total_times), 2)
             except: pass
 
+
     def save_results(self):
         output_path = os.path.join(self.results_dir, "metrics.json")
         with open(output_path, 'w') as f:
             json.dump(self.results, f, indent=4)
         print(f"   Done -> {self.identifier}")
+
 
 def run_all_evaluations(base_dir):
     for root, dirs, files in os.walk(base_dir):
@@ -233,7 +291,8 @@ def run_all_evaluations(base_dir):
             eval_obj.run_all_metrics()
             eval_obj.parse_logs_and_complexity()
             eval_obj.save_results()
+            exit(5)
 
 if __name__ == "__main__":
     # NOTE: This script was for testing purposes and some metrics may be missing/inaccurate (e.g. depth inference time is not considered but should be)
-    run_all_evaluations("./results")
+    run_all_evaluations("./rob-530-slam-comparison/results")

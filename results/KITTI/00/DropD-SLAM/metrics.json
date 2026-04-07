@@ -1,0 +1,23 @@
+{
+    "frames_tracked": 4541,
+    "frames_total_possible": 4541,
+    "tracking_success_percent": 100.0,
+    "ape_rmse_se3_metric": 38.295203,
+    "ape_rmse_sim3_aligned": 3.00665,
+    "rpe_rmse_metric": 0.176776,
+    "rpe_trans_rmse_delta1f": 0.052731,
+    "rpe_rot_rmse_delta1f": 0.136767,
+    "rpe_trans_rmse_delta10f": 0.376732,
+    "rpe_rot_rmse_delta10f": 0.656374,
+    "rpe_trans_rmse_delta100m": 2.175415,
+    "rpe_rot_rmse_delta100m": 1.315144,
+    "rmse_x": 27.565930901638602,
+    "rmse_y": 4.40913412353175,
+    "rmse_z": 57.532147032592256,
+    "rmse_3d": 63.94739206858259,
+    "mean_tracking_ms": 39.55881,
+    "mean_mapping_ms": 147.38743,
+    "keyframes_in_map": 1478,
+    "points_in_map": 248059,
+    "mean_fps": 25.28
+}
