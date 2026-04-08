@@ -123,7 +123,7 @@ docker compose run dropd-slam
 ./Examples/RGB-D/rgbd_tum <vocabulary> <config> <sequence_path> <associations> unidepth <depth_model_path>
 
 # For KITTI sequences. Make sure the config in ./Examples/RGB-D/ is updated.
-./Exampled/RGB-D/dropd_kitti <vocabulary> <config> <sequence path> unidepth <depth_model_path>
+./Examples/RGB-D/dropd_kitti <vocabulary> <config> <sequence path> unidepth <depth_model_path>
 ```
 * `vocabulary`: Path to ORB vocabulary file
 * `config`: Path to YAML configuration file

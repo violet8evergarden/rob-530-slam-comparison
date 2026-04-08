@@ -67,3 +67,17 @@ Numb exec: 0
 Numb abort: 0
 Number of KFs: -nan$\pm$-nan
 Number of MPs: -nan$\pm$-nan
+
+-------
+median tracking time: 0.035318
+mean tracking time: 0.036952
+-------
+Depth Inference Statistics:
+median depth inference time: 0.071932 s
+mean depth inference time: 0.2182 s
+mean depth inference time: 218.2 ms
+depth inference FPS: 4.5829
+-------
+Total time: 134.96
+FPS: 8.8989
+-------
