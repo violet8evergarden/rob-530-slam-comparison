@@ -134,7 +134,7 @@ docker compose run dropd-slam
 For example:
 ```bash
 # Run DropD-SLAM with monocular depth estimation
-./Examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt Examples/RGB-D/TUM1.yaml /data/TUM/rgbd_dataset_freiburg1_desk2 /data/TUM/rgbd_dataset_freiburg1_desk2/associations.txt unidepth /workspace/models/unidepthv2_with_cam.onnx
+./Examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt Examples/RGB-D/TUM1.yaml /data/TUM/rgbd_dataset_freiburg1_desk2 /data/TUM/rgbd_dataset_freiburg1_desk2/fr1_desk2.txt unidepth /workspace/models/unidepthv2_with_cam.onnx
 ```
 
 ## ORB-SLAM3 Instructions
