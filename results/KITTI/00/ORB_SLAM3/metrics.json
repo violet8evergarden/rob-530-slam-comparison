@@ -11,10 +11,6 @@
     "rpe_rot_rmse_delta10f": 0.626193,
     "rpe_trans_rmse_delta100m": 1.079443,
     "rpe_rot_rmse_delta100m": 0.680574,
-    "rmse_x": 3.0879431844823864,
-    "rmse_y": 5.233387716547953,
-    "rmse_z": 3.818233728590838,
-    "rmse_3d": 7.1765346030277675,
     "drift_rate_m_per_m": 0.000342,
     "path_length_m": 3714.405,
     "tracking_loss_events": 0,
@@ -25,5 +21,8 @@
     "mean_mapping_ms": 117.64191,
     "keyframes_in_map": 1334,
     "points_in_map": 138499,
-    "mean_fps": 37.27
+    "mean_fps": 37.27,
+    "map_points_per_meter": 37.29,
+    "keyframes_per_meter": 0.3591,
+    "keyframe_ratio": 0.2938
 }

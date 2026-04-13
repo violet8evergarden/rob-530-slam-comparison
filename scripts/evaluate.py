@@ -157,29 +157,41 @@ class SLAMEvaluator:
                     k = f"rpe_{key}_rmse_delta{delta}{unit}"
                     self.results[k] = float(rmse.group(1))
 
-    # TODO Broken -> not aligned correctly?
-    def compute_per_axis_rmse(self):
-        """Load both trajectories, align, and compute RMSE per axis."""
-        try:
-            est_data = np.loadtxt(self.est)
-            gt_data  = np.loadtxt(self.gt)
-            
-            # Sync by nearest timestamp
-            from scipy.spatial import KDTree
-            gt_ts = gt_data[:, 0]
-            est_ts = est_data[:, 0]
-            tree = KDTree(gt_ts.reshape(-1, 1))
-            _, idx = tree.query(est_ts.reshape(-1, 1))
-            gt_sync = gt_data[idx]
 
-            # x, y, z columns
-            diff = est_data[:, 1:4] - gt_sync[:, 1:4]
-            for i, axis in enumerate(["x", "y", "z"]):
-                self.results[f"rmse_{axis}"] = float(np.sqrt(np.mean(diff[:, i] ** 2)))
-            self.results["rmse_3d"] = float(np.sqrt(np.mean(np.sum(diff**2, axis=1))))
-            
+    # Untested for Fast-LIO results
+    def compute_map_efficiency(self):
+        '''Computes how much map data is being stored relative to the area covered'''
+        try:
+            is_lidar = "fast_lio" in self.identifier.lower()
+
+            # points_in_map for monocular, final_tree_size for LiDAR
+            # how many map points were created per meter traveled
+            point_count = None
+            if "points_in_map" in self.results:
+                point_count = self.results["points_in_map"]
+            elif "final_tree_size" in self.results:
+                point_count = self.results["final_tree_size"]
+
+            if point_count and "path_length_m" in self.results:
+                self.results["map_points_per_meter"] = round(
+                    point_count / max(self.results["path_length_m"], 1e-6), 2)
+
+            # how many keyframes were created per meter traveled
+            if "keyframes_in_map" in self.results and "path_length_m" in self.results:
+                self.results["keyframes_per_meter"] = round(
+                    self.results["keyframes_in_map"] /
+                    max(self.results["path_length_m"], 1e-6), 4)
+
+            # Fast-LIO doesn't use Keyframes
+            # how much does the algo compress the map
+            if not is_lidar:
+                if "keyframes_in_map" in self.results and "frames_tracked" in self.results:
+                    self.results["keyframe_ratio"] = round(
+                        self.results["keyframes_in_map"] /
+                        max(self.results["frames_tracked"], 1), 4)
+
         except Exception as e:
-            print(f"compute per axis RMSE failed for some reason: {e}")
+            print(f"compute_map_efficiency failed for some reason: {e}")
     
 
     def compute_drift_rate(self):
@@ -264,13 +276,10 @@ class SLAMEvaluator:
         # 4. RPE with delta windows
         self.compute_rpe_deltas()
 
-        # 5. RPE by axis
-        self.compute_per_axis_rmse()
-
-        # 6. Drift rate for ATE comparisons
+        # 5. Drift rate for ATE comparisons
         self.compute_drift_rate()
 
-        # 7. Check how many times an algorithm lost tracking and for how long
+        # 6. Check how many times an algorithm lost tracking and for how long
         self.compute_tracking_loss()
 
 
@@ -325,6 +334,8 @@ def run_all_evaluations(base_dir):
             eval_obj = SLAMEvaluator(est_path, os.path.join(gt_dir, gt_txts[0]))
             eval_obj.run_all_metrics()
             eval_obj.parse_logs_and_complexity()
+            # 7. Map and memory efficiency
+            eval_obj.compute_map_efficiency()
             eval_obj.save_results()
 
 if __name__ == "__main__":
