@@ -21,5 +21,8 @@
     "mean_mapping_ms": 107.27732,
     "keyframes_in_map": 569,
     "points_in_map": 64465,
-    "mean_fps": 22.89
+    "mean_fps": 22.89,
+    "map_points_per_meter": 33.82,
+    "keyframes_per_meter": 0.2986,
+    "keyframe_ratio": 0.5177
 }

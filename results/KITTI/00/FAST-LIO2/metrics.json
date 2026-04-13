@@ -1,0 +1,20 @@
+{
+    "frames_tracked": 3475,
+    "frames_total_possible": 4541,
+    "tracking_success_percent": 76.52,
+    "ape_rmse_se3_metric": 25.398913,
+    "ape_rmse_sim3_aligned": 25.338089,
+    "rpe_rmse_metric": 1.905429,
+    "rpe_trans_rmse_delta1f": 1.905429,
+    "rpe_rot_rmse_delta1f": 2.864998,
+    "rpe_trans_rmse_delta10f": 16.308706,
+    "rpe_rot_rmse_delta10f": 21.511776,
+    "rpe_trans_rmse_delta100m": 131.242064,
+    "rpe_rot_rmse_delta100m": 92.609236,
+    "drift_rate_m_per_m": 0.006886,
+    "path_length_m": 3688.223,
+    "tracking_loss_events": 8,
+    "total_tracking_loss_s": 5.907,
+    "longest_loss_event_s": 0.933,
+    "relocalization_success_rate": 1.0
+}
